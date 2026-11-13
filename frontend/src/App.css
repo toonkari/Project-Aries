@@ -1,5 +1,5 @@
 /* ==========================================
-   Background Video Layer (Fixed & Behind)
+   Background Video & Architectural HUD Grid
    ========================================== */
 .video-background {
   position: fixed;
@@ -9,10 +9,73 @@
   height: 100vh;
   object-fit: cover;
   z-index: -999;
-  opacity: 0.22;
+  opacity: 0.05;
   pointer-events: none;
 }
 
+.zzz-hud-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: -500;
+  pointer-events: none;
+  background-image: 
+    linear-gradient(to right, rgba(0, 0, 0, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+.zzz-hud-frame {
+  position: fixed;
+  inset: 1.25rem;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  pointer-events: none;
+  z-index: -499;
+}
+
+.zzz-hud-crosshair {
+  position: absolute;
+  font-family: monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.25em;
+  color: rgba(0, 0, 0, 0.3);
+  user-select: none;
+}
+
+.zzz-hud-crosshair.top-left { top: 0.75rem; left: 1rem; }
+.zzz-hud-crosshair.bottom-right { bottom: 0.75rem; right: 1rem; }
+
+/* ==========================================
+   Sliding Giant Background Typography ("DESIGN")
+   ========================================== */
+.bg-sliding-word {
+  position: absolute;
+  bottom: 5%;
+  left: 5%;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 900;
+  font-style: italic;
+  font-size: clamp(5.5rem, 18vw, 15rem);
+  line-height: 0.85;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+  color: rgba(118, 255, 3, 0.05);
+  -webkit-text-stroke: 2px rgba(18, 19, 22, 0.12);
+  pointer-events: none;
+  user-select: none;
+  z-index: 1;
+  opacity: 0;
+  transform: translateX(-100px) skewX(-8deg);
+  transition: transform 0.85s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.65s ease;
+}
+
+.bg-sliding-word.slide-in {
+  opacity: 1;
+  transform: translateX(0) skewX(-8deg);
+}
+
+/* ==========================================
+   Scroll-Snap Viewport Container
+   ========================================== */
 .snap-container {
   width: 100vw;
   height: 100vh;
@@ -25,6 +88,7 @@
   z-index: 1;
 }
 
+/* Asymmetric Section Layout: Anchored to Top-Left/Left Axis */
 .snap-section {
   width: 100vw;
   height: 100vh;
@@ -33,80 +97,108 @@
   scroll-snap-stop: always;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem 1.25rem;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding: 5rem 6rem;
   box-sizing: border-box;
   position: relative;
+  overflow: hidden;
+}
+
+@media (max-width: 768px) {
+  .snap-section {
+    padding: 4rem 1.5rem;
+  }
 }
 
 /* ==========================================
-   ZZZ Inter-Knot Panels & Banners
+   Minimal Right-Edge HUD Navigation Rail
    ========================================== */
-.zzz-panel {
-  background: #14161f;
-  border: 2px solid #232634;
-  border-left: 6px solid #00f0ff;
-  border-radius: 6px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
-  transition: transform 0.2s ease, border-color 0.2s ease;
-}
-
-.zzz-panel:hover {
-  transform: translateY(-2px);
-  border-color: #00f0ff;
-}
-
-.zzz-banner {
-  background: linear-gradient(90deg, #181a26 0%, #14161f 100%);
-  border: 2px solid #232634;
-  border-bottom: 4px solid #00f0ff;
-  border-radius: 6px;
-  padding: 1.25rem 1.5rem;
+.tab-switcher {
+  position: fixed;
+  right: 1.5rem;
+  top: 50%;
+  transform: translateY(-50%);
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 0.3rem;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
-}
-
-/* Slanted Tab Switchers */
-.tab-switcher {
-  display: flex;
-  gap: 0.75rem;
-  justify-content: center;
-  margin-bottom: 1.5rem;
+  align-items: flex-end;
+  gap: 0.45rem;
+  z-index: 50;
 }
 
 .zzz-tab-button {
   font-family: 'Montserrat', sans-serif;
   font-weight: 800;
-  font-size: 0.85rem;
-  padding: 0.6rem 1.4rem;
-  background: #14161f;
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  padding: 0.35rem 0.7rem;
+  background: rgba(12, 13, 18, 0.85);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   color: #94a3b8;
-  border: 2px solid #232634;
-  transform: skewX(-10deg);
+  border: 1px solid #232634;
+  border-left: 3px solid #76ff03;
+  border-radius: 2px;
   cursor: pointer;
   text-transform: uppercase;
   transition: all 0.2s ease;
+  opacity: 0.65;
 }
 
 .zzz-tab-button span {
   display: block;
-  transform: skewX(10deg);
 }
 
 .zzz-tab-button:hover {
-  background: #ff5500;
-  color: #fff;
-  border-color: #ff5500;
+  opacity: 1;
+  background: #141620;
+  color: #ffffff;
+  border-color: #76ff03;
+  transform: translateX(-3px);
 }
 
 .zzz-tab-button.active {
-  background: #00f0ff;
-  color: #0c0d12;
-  border-color: #00f0ff;
+  opacity: 1;
+  background: #0c0d12;
+  color: #76ff03;
+  border-color: #76ff03;
+  border-left-width: 5px;
+  padding-right: 0.9rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+/* ==========================================
+   ZZZ Black Panels & Light-Green Notches
+   ========================================== */
+.zzz-panel {
+  background: #0c0d12;
+  border: 2px solid #232634;
+  border-left: 6px solid #76ff03;
+  border-radius: 4px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+  position: relative;
+  z-index: 2;
+}
+
+.zzz-panel:hover {
+  transform: translateY(-2px);
+  border-color: #76ff03;
+}
+
+.zzz-banner {
+  background: #0c0d12;
+  border: 2px solid #232634;
+  border-bottom: 4px solid #76ff03;
+  border-radius: 4px;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.3rem;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  position: relative;
+  z-index: 2;
 }
 
 /* Social Cards */
@@ -116,18 +208,20 @@
   justify-content: space-between;
   padding: 1rem 1.25rem;
   text-decoration: none;
-  background: #14161f;
+  background: #0c0d12;
   border: 2px solid #232634;
-  border-left: 6px solid #ff5500;
+  border-left: 6px solid #76ff03;
   border-radius: 4px;
   color: #fff;
   font-weight: 700;
   transition: all 0.2s ease;
+  position: relative;
+  z-index: 2;
 }
 
 .zzz-social-card:hover {
-  background: #1c1f2e;
-  border-left-color: #00f0ff;
+  background: #141620;
+  border-left-color: #76ff03;
   transform: translateX(4px);
 }
 
@@ -139,14 +233,14 @@
   width: 100%;
   height: 36px;
   background: #0c0d12;
-  border-top: 2px solid #00f0ff;
+  border-top: 2px solid #76ff03;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: center; /* Explicitly kept centered as requested */
   gap: 0.5rem;
   font-family: 'Montserrat', sans-serif;
   font-size: 0.75rem;
-  color: #00f0ff;
+  color: #76ff03;
   font-weight: 900;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -163,19 +257,23 @@
 
 .scroll-indicator {
   position: absolute;
-  bottom: 1.5rem;
-  left: 50%;
-  transform: translateX(-50%);
+  bottom: 2rem;
+  left: 6rem;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 0.3rem;
-  color: #00f0ff;
+  gap: 0.5rem;
+  color: #121316;
   font-family: 'Montserrat', sans-serif;
   font-size: 0.75rem;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.15em;
   pointer-events: none;
-  text-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+  z-index: 2;
+}
+
+@media (max-width: 768px) {
+  .scroll-indicator {
+    left: 1.5rem;
+  }
 }

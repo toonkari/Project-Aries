@@ -1,14 +1,13 @@
 @import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,600;0,700;0,800;1,700;1,800&family=Montserrat:ital,wght@0,800;0,900;1,800;1,900&display=swap');
 
 :root {
-  --zzz-bg: #0c0d12;
-  --zzz-card: #14161f;
-  --zzz-cyan: #00f0ff;
-  --zzz-orange: #ff5500;
+  --zzz-bg: #f2f3f7; /* Clean off-white background */
+  --zzz-card: #0c0d12; /* Solid black panels */
+  --zzz-accent: #76ff03; /* Minimal light green notch accent */
   
   font: 16px/150% 'Chakra Petch', sans-serif;
-  color-scheme: dark;
-  color: #f8fafc;
+  color-scheme: light;
+  color: #121316;
   background: var(--zzz-bg);
 }
 
@@ -32,6 +31,6 @@ body {
 h1, h2, h3 {
   font-family: 'Montserrat', sans-serif;
   font-weight: 900;
-  color: #ffffff;
+  color: #121316;
   margin: 0;
 }

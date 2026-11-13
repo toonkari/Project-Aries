@@ -58,6 +58,7 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    const container = document.querySelector('.snap-container');
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -66,14 +67,14 @@ export default function App() {
             if (entry.target === projectsRef.current) {
               setActiveTab('projects');
               setIsProjectsInView(true);
-            } else {
-              setIsProjectsInView(false);
             }
             if (entry.target === socialsRef.current) setActiveTab('socials');
+          } else if (entry.target === projectsRef.current) {
+            setIsProjectsInView(false);
           }
         });
       },
-      { threshold: 0.55 }
+      { root: container, threshold: 0.3 }
     );
 
     if (introRef.current) observer.observe(introRef.current);
@@ -91,36 +92,40 @@ export default function App() {
   return (
     <div className="snap-container">
       <video src="/background.mp4" autoPlay loop muted playsInline className="video-background" />
+      <div className="zzz-hud-overlay" />
+      <div className="zzz-hud-frame">
+        <span className="zzz-hud-crosshair top-left">+++ // SYS.ARIES.01</span>
+        <span className="zzz-hud-crosshair bottom-right">NEW ERIDU PROXY // +++</span>
+      </div>
+
+      {/* Minimal Fixed Right-Side Navigation Rail */}
+      <div className="tab-switcher">
+        <button className={`zzz-tab-button ${activeTab === 'intro' ? 'active' : ''}`} onClick={() => scrollToSection(introRef, 'intro')}>
+          <span>01 // Intro</span>
+        </button>
+        <button className={`zzz-tab-button ${activeTab === 'projects' ? 'active' : ''}`} onClick={() => scrollToSection(projectsRef, 'projects')}>
+          <span>02 // Work</span>
+        </button>
+        <button className={`zzz-tab-button ${activeTab === 'socials' ? 'active' : ''}`} onClick={() => scrollToSection(socialsRef, 'socials')}>
+          <span>03 // Links</span>
+        </button>
+      </div>
 
       {/* SECTION 1: INTRO */}
       <section ref={introRef} className="snap-section">
         <div style={{ width: '100%', maxWidth: '580px', marginBottom: '1.5rem' }}>
-          {/* Inter-Knot Profile Banner Header (No Logo Badge) */}
           <div className="zzz-banner">
-            <h1 style={{ fontSize: '1.6rem', fontWeight: '900', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+            <h1 style={{ fontSize: '1.8rem', fontWeight: '900', letterSpacing: '0.05em', textTransform: 'uppercase', color: '#fff' }}>
               PROJECT ARIES
             </h1>
-            <p style={{ color: '#00f0ff', fontSize: '0.8rem', fontWeight: '800', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+            <p style={{ color: '#76ff03', fontSize: '0.8rem', fontWeight: '800', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
               // INTER-KNOT PROXY AGENT PROFILE
             </p>
           </div>
         </div>
 
-        {/* Tab Switcher */}
-        <div className="tab-switcher">
-          <button className={`zzz-tab-button ${activeTab === 'intro' ? 'active' : ''}`} onClick={() => scrollToSection(introRef, 'intro')}>
-            <span>Intro</span>
-          </button>
-          <button className={`zzz-tab-button ${activeTab === 'projects' ? 'active' : ''}`} onClick={() => scrollToSection(projectsRef, 'projects')}>
-            <span>Projects</span>
-          </button>
-          <button className={`zzz-tab-button ${activeTab === 'socials' ? 'active' : ''}`} onClick={() => scrollToSection(socialsRef, 'socials')}>
-            <span>Socials</span>
-          </button>
-        </div>
-
         <div className="zzz-panel" style={{ padding: '1.75rem', maxWidth: '580px', width: '100%', textAlign: 'left' }}>
-          <h2 style={{ fontSize: '1.1rem', color: '#00f0ff', marginBottom: '0.6rem', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+          <h2 style={{ fontSize: '1.1rem', color: '#76ff03', marginBottom: '0.6rem', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
             The first breath of my career.
           </h2>
           <p style={{ color: '#cbd5e1', fontSize: '0.9rem', lineHeight: '1.5' }}>
@@ -130,19 +135,23 @@ export default function App() {
 
         <div className="scroll-indicator">
           <span>SCROLL DOWN</span>
-          <span style={{ fontSize: '1rem' }}>▼</span>
+          <span style={{ fontSize: '1rem', color: '#76ff03' }}>▼</span>
         </div>
       </section>
 
       {/* SECTION 2: PROJECTS */}
       <section ref={projectsRef} className="snap-section">
-        <main style={{ width: '100%', maxWidth: '640px', marginBottom: '2rem', textAlign: 'left' }}>
-          <h2 style={{ fontSize: '1.1rem', color: '#00f0ff', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.75rem', fontWeight: '900' }}>
+        <div className={`bg-sliding-word ${isProjectsInView ? 'slide-in' : ''}`}>
+          DESIGN
+        </div>
+
+        <main style={{ width: '100%', maxWidth: '640px', marginBottom: '2rem', textAlign: 'left', position: 'relative', zIndex: 2 }}>
+          <h2 style={{ fontSize: '1.1rem', color: '#121316', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.75rem', fontWeight: '900' }}>
             [ COMMISSIONS & PROJECTS ]
           </h2>
 
           {loading ? (
-            <p style={{ color: '#94a3b8', textAlign: 'center', fontWeight: '800' }}>Accessing database...</p>
+            <p style={{ color: '#121316', textAlign: 'left', fontWeight: '800' }}>Accessing database...</p>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
               {projects.map((project) => (
@@ -153,9 +162,9 @@ export default function App() {
                     </h3>
                     <span style={{ 
                       fontSize: '0.65rem', padding: '0.15rem 0.5rem', fontWeight: '900',
-                      backgroundColor: project.status === 'Active' ? 'rgba(0, 240, 255, 0.2)' : 'rgba(255, 85, 0, 0.2)',
-                      color: project.status === 'Active' ? '#00f0ff' : '#ff5500',
-                      border: `1px solid ${project.status === 'Active' ? '#00f0ff' : '#ff5500'}`
+                      backgroundColor: project.status === 'Active' ? 'rgba(118, 255, 3, 0.15)' : 'rgba(255, 85, 0, 0.15)',
+                      color: project.status === 'Active' ? '#76ff03' : '#ff5500',
+                      border: `1px solid ${project.status === 'Active' ? '#76ff03' : '#ff5500'}`
                     }}>
                       {project.status.toUpperCase()}
                     </span>
@@ -168,13 +177,13 @@ export default function App() {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.4rem' }}>
                     <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap' }}>
                       {project.techStack.map((tech, index) => (
-                        <span key={index} style={{ fontSize: '0.65rem', backgroundColor: '#0c0d12', padding: '0.15rem 0.4rem', border: '1px solid rgba(255,255,255,0.15)', color: '#00f0ff', fontWeight: '800' }}>
+                        <span key={index} style={{ fontSize: '0.65rem', backgroundColor: '#141620', padding: '0.15rem 0.4rem', border: '1px solid rgba(255,255,255,0.15)', color: '#76ff03', fontWeight: '800' }}>
                           {tech}
                         </span>
                       ))}
                     </div>
 
-                    <a href={project.githubUrl} target="_blank" rel="noreferrer" style={{ fontSize: '0.8rem', color: '#ff5500', textDecoration: 'none', fontWeight: '900', textTransform: 'uppercase' }}>
+                    <a href={project.githubUrl} target="_blank" rel="noreferrer" style={{ fontSize: '0.8rem', color: '#76ff03', textDecoration: 'none', fontWeight: '900', textTransform: 'uppercase' }}>
                       Source Code →
                     </a>
                   </div>
@@ -185,21 +194,21 @@ export default function App() {
         </main>
 
         <div className={`projects-status-bar ${isProjectsInView ? 'visible' : ''}`}>
-          <span style={{ width: '7px', height: '7px', backgroundColor: '#00f0ff', boxShadow: '0 0 6px #00f0ff' }}></span>
+          <span style={{ width: '7px', height: '7px', backgroundColor: '#76ff03', boxShadow: '0 0 6px #76ff03' }}></span>
           <span>FastAPI Proxy Live // Connection Secure</span>
         </div>
       </section>
 
       {/* SECTION 3: SOCIALS */}
       <section ref={socialsRef} className="snap-section">
-        <div style={{ width: '100%', maxWidth: '640px', textAlign: 'left' }}>
-          <h2 style={{ fontSize: '1.1rem', color: '#00f0ff', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.75rem', fontWeight: '900' }}>
+        <div style={{ width: '100%', maxWidth: '640px', textAlign: 'left', position: 'relative', zIndex: 2 }}>
+          <h2 style={{ fontSize: '1.1rem', color: '#121316', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.75rem', fontWeight: '900' }}>
             [ NETWORK CHANNELS ]
           </h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
             {socialLinks.map((link, idx) => (
               <a key={idx} href={link.url} target="_blank" rel="noreferrer" className="zzz-social-card">
-                <div style={{ color: '#00f0ff', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <div style={{ color: '#76ff03', display: 'flex', alignItems: 'center', gap: '1rem' }}>
                   {link.icon}
                   <div>
                     <div style={{ fontWeight: '900', letterSpacing: '0.04em', color: '#fff' }}>{link.name}</div>
@@ -208,7 +217,7 @@ export default function App() {
                     </div>
                   </div>
                 </div>
-                <span style={{ color: '#ff5500', fontWeight: '900', fontSize: '1.1rem' }}>→</span>
+                <span style={{ color: '#76ff03', fontWeight: '900', fontSize: '1.1rem' }}>→</span>
               </a>
             ))}
           </div>
