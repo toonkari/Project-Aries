@@ -1,15 +1,47 @@
 import { useState, useEffect, useRef } from 'react';
 import './App.css';
 
+const API_BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/$/, '');
+
+
+// Pure helper moved outside component so it never triggers React dependency warnings
+const playHudClick = () => {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(900, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(300, ctx.currentTime + 0.04);
+    gain.gain.setValueAtTime(0.04, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.001, ctx.currentTime + 0.04);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.04);
+  } catch {
+    // Audio context suppressed before user interaction
+  }
+};
+
 export default function App() {
   const [activeTab, setActiveTab] = useState('intro');
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isProjectsInView, setIsProjectsInView] = useState(false);
 
+  // Transmission Terminal State
+  const [senderHandle, setSenderHandle] = useState('');
+  const [messageBody, setMessageBody] = useState('');
+  const [transmissionStatus, setTransmissionStatus] = useState(null);
+  const [isTransmitting, setIsTransmitting] = useState(false);
+
   const introRef = useRef(null);
   const projectsRef = useRef(null);
   const socialsRef = useRef(null);
+  const terminalRef = useRef(null);
 
   const socialLinks = [
     { 
@@ -44,21 +76,29 @@ export default function App() {
     }
   ];
 
+  const scrollToSection = (ref, tabName) => {
+    playHudClick();
+    setActiveTab(tabName);
+    ref.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
   useEffect(() => {
-    fetch('http://localhost:8000/api/projects')
-      .then((res) => res.json())
-      .then((data) => {
-        setProjects(data.projects);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Failed to fetch projects:", err);
-        setLoading(false);
-      });
-  }, []);
+  fetch(`${API_BASE_URL}/api/projects`)
+    .then((res) => res.json())
+    .then((data) => {
+      setProjects(data.projects);
+      setLoading(false);
+    })
+    .catch((err) => {
+      console.error("Failed to fetch projects:", err);
+      setLoading(false);
+    });
+}, []);
 
   useEffect(() => {
     const container = document.querySelector('.snap-container');
+    if (!container) return;
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -67,10 +107,11 @@ export default function App() {
             if (entry.target === projectsRef.current) {
               setActiveTab('projects');
               setIsProjectsInView(true);
+            } else {
+              setIsProjectsInView(false);
             }
             if (entry.target === socialsRef.current) setActiveTab('socials');
-          } else if (entry.target === projectsRef.current) {
-            setIsProjectsInView(false);
+            if (entry.target === terminalRef.current) setActiveTab('terminal');
           }
         });
       },
@@ -80,13 +121,56 @@ export default function App() {
     if (introRef.current) observer.observe(introRef.current);
     if (projectsRef.current) observer.observe(projectsRef.current);
     if (socialsRef.current) observer.observe(socialsRef.current);
+    if (terminalRef.current) observer.observe(terminalRef.current);
 
     return () => observer.disconnect();
   }, []);
 
-  const scrollToSection = (ref, tabName) => {
-    setActiveTab(tabName);
-    ref.current?.scrollIntoView({ behavior: 'smooth' });
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      
+      const navigate = (ref, tabName) => {
+        playHudClick();
+        setActiveTab(tabName);
+        ref.current?.scrollIntoView({ behavior: 'smooth' });
+      };
+
+      if (e.key === '1') navigate(introRef, 'intro');
+      if (e.key === '2') navigate(projectsRef, 'projects');
+      if (e.key === '3') navigate(socialsRef, 'socials');
+      if (e.key === '4') navigate(terminalRef, 'terminal');
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  const handleSendTransmission = async (e) => {
+    e.preventDefault();
+    if (!senderHandle || !messageBody) return;
+    setIsTransmitting(true);
+    setTransmissionStatus(null);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/proxy-message`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sender_handle: senderHandle, message: messageBody })
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setTransmissionStatus(data.acknowledgement);
+        setSenderHandle('');
+        setMessageBody('');
+      } else {
+        setTransmissionStatus('Transmission failed. Connection error.');
+      }
+    } catch {
+      setTransmissionStatus('Server unreachable. FastAPI offline.');
+    } finally {
+      setIsTransmitting(false);
+    }
   };
 
   return (
@@ -98,7 +182,7 @@ export default function App() {
         <span className="zzz-hud-crosshair bottom-right">NEW ERIDU PROXY // +++</span>
       </div>
 
-      {/* Minimal Fixed Right-Side Navigation Rail */}
+      {/* 4-Item Right-Side Navigation Rail */}
       <div className="tab-switcher">
         <button className={`zzz-tab-button ${activeTab === 'intro' ? 'active' : ''}`} onClick={() => scrollToSection(introRef, 'intro')}>
           <span>01 // Intro</span>
@@ -108,6 +192,9 @@ export default function App() {
         </button>
         <button className={`zzz-tab-button ${activeTab === 'socials' ? 'active' : ''}`} onClick={() => scrollToSection(socialsRef, 'socials')}>
           <span>03 // Links</span>
+        </button>
+        <button className={`zzz-tab-button ${activeTab === 'terminal' ? 'active' : ''}`} onClick={() => scrollToSection(terminalRef, 'terminal')}>
+          <span>04 // Terminal</span>
         </button>
       </div>
 
@@ -134,7 +221,7 @@ export default function App() {
         </div>
 
         <div className="scroll-indicator">
-          <span>SCROLL DOWN</span>
+          <span>SCROLL DOWN [PRESS 2]</span>
           <span style={{ fontSize: '1rem', color: '#76ff03' }}>▼</span>
         </div>
       </section>
@@ -201,7 +288,7 @@ export default function App() {
 
       {/* SECTION 3: SOCIALS */}
       <section ref={socialsRef} className="snap-section">
-        <div style={{ width: '100%', maxWidth: '640px', textAlign: 'left', position: 'relative', zIndex: 2 }}>
+        <main style={{ width: '100%', maxWidth: '640px', textAlign: 'left', position: 'relative', zIndex: 2 }}>
           <h2 style={{ fontSize: '1.1rem', color: '#121316', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.75rem', fontWeight: '900' }}>
             [ NETWORK CHANNELS ]
           </h2>
@@ -221,8 +308,48 @@ export default function App() {
               </a>
             ))}
           </div>
-        </div>
+        </main>
+      </section>
+
+      {/* SECTION 4: TRANSMISSION TERMINAL */}
+      <section ref={terminalRef} className="snap-section">
+        <main style={{ width: '100%', maxWidth: '640px', textAlign: 'left', position: 'relative', zIndex: 2 }}>
+          <h2 style={{ fontSize: '1.1rem', color: '#121316', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.75rem', fontWeight: '900' }}>
+            [ DIRECT TRANSMISSION ]
+          </h2>
+          <form onSubmit={handleSendTransmission} className="zzz-terminal-form" style={{ marginTop: 0 }}>
+            <div style={{ fontSize: '0.8rem', fontWeight: '900', color: '#76ff03', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+              // SECURE PROXY TRANSMISSION TERMINAL
+            </div>
+            <input 
+              type="text" 
+              placeholder="Your Proxy Handle / Name" 
+              value={senderHandle}
+              onChange={(e) => setSenderHandle(e.target.value)}
+              className="zzz-input"
+              required 
+            />
+            <textarea 
+              placeholder="Enter secure message or commission brief..." 
+              value={messageBody}
+              onChange={(e) => setMessageBody(e.target.value)}
+              className="zzz-input"
+              rows="3"
+              required 
+            />
+            <button type="submit" className="zzz-submit-btn" disabled={isTransmitting}>
+              {isTransmitting ? 'Transmitting...' : 'Send Transmission →'}
+            </button>
+            {transmissionStatus && (
+              <div className="zzz-response-msg">
+                {transmissionStatus}
+              </div>
+            )}
+          </form>
+        </main>
       </section>
     </div>
   );
+
+  
 }

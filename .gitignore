@@ -1,0 +1,4 @@
+# Local Database & Environment Secrets
+*.db
+.env
+backend/.env
