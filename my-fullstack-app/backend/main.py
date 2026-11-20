@@ -101,8 +101,8 @@ init_db()
 
 
 # --- 3. SECURITY DEPENDENCY ---
-def verify_admin_key(x_api_key: str = Header(...)) -> str:
-    if x_api_key != settings.admin_api_key:
+def verify_admin_key(x_api_key: str | None = Header(default=None)) -> str:
+    if not x_api_key or x_api_key != settings.admin_api_key:
         raise HTTPException(
             status_code=403,
             detail="Access denied. Invalid or missing Proxy API Key.",
