@@ -1,339 +1,482 @@
-/* ==========================================
-   Background Video & Architectural HUD Grid
-   ========================================== */
+/* ==========================================================================
+   PROJECT ARIES // ZZZ LIGHT-GRID & REAL-TIME VIDEO DARK MODE
+   ========================================================================== */
+
+:root {
+  --acid-lime: #9eff20;
+  --obsidian: #0b0d12;
+  --panel-dark: rgba(11, 13, 18, 0.94);
+  --panel-darker: rgba(10, 12, 16, 0.96);
+  --text-light: #f8fafc;
+  --text-muted: #94a3b8;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background-color: #f4f6f9;
+  color: var(--text-light);
+}
+
+/* ==========================================================================
+   SNAP CONTAINER, LIGHT ARTWORK, LIGHT GRID & VIDEO FADE
+   ========================================================================== */
+
+.snap-container {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow-y: scroll;
+  scroll-snap-type: y mandatory;
+  scroll-behavior: smooth;
+  background-color: #f4f6f9;
+  background-image:
+    linear-gradient(to right, rgba(15, 23, 42, 0.055) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(15, 23, 42, 0.055) 1px, transparent 1px);
+  background-size: 44px 44px;
+}
+
+.light-side-artwork {
+  position: fixed;
+  right: 7rem;
+  bottom: 0;
+  height: 82vh;
+  max-height: 760px;
+  width: auto;
+  object-fit: contain;
+  object-position: right bottom;
+  mix-blend-mode: multiply;
+  opacity: 0.92;
+  z-index: 0;
+  pointer-events: none;
+  transition: opacity 0.35s ease;
+}
+
+.snap-container.dark-mode .light-side-artwork {
+  opacity: 0;
+}
+
 .video-background {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
-  z-index: -999;
-  opacity: 0.05;
+  z-index: 1;
   pointer-events: none;
+  opacity: 0;
+  filter: contrast(1.06) brightness(0.72);
+  transition: opacity 0.45s ease;
 }
 
 .zzz-hud-overlay {
   position: fixed;
   inset: 0;
-  z-index: -500;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
   pointer-events: none;
-  background-image: 
-    linear-gradient(to right, rgba(0, 0, 0, 0.04) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(0, 0, 0, 0.04) 1px, transparent 1px);
-  background-size: 48px 48px;
+  opacity: 0;
+  background: radial-gradient(circle at 50% 45%, rgba(11, 13, 18, 0.2) 0%, rgba(8, 10, 14, 0.82) 100%);
+  transition: opacity 0.45s ease;
 }
+
+.snap-container.dark-mode .video-background,
+.snap-container.dark-mode .zzz-hud-overlay {
+  opacity: 1;
+}
+
+/* ==========================================================================
+   HUD CORNERS & TOP-RIGHT DARK MODE SLIDER SWITCH
+   ========================================================================== */
 
 .zzz-hud-frame {
   position: fixed;
-  inset: 1.25rem;
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  inset: 0;
+  z-index: 3;
   pointer-events: none;
-  z-index: -499;
 }
 
 .zzz-hud-crosshair {
-  position: absolute;
-  font-family: monospace;
-  font-size: 0.7rem;
-  letter-spacing: 0.25em;
-  color: rgba(0, 0, 0, 0.3);
-  user-select: none;
-}
-
-.zzz-hud-crosshair.top-left { top: 0.75rem; left: 1rem; }
-.zzz-hud-crosshair.bottom-right { bottom: 0.75rem; right: 1rem; }
-
-/* ==========================================
-   Sliding Giant Background Typography ("DESIGN")
-   ========================================== */
-.bg-sliding-word {
-  position: absolute;
-  bottom: 5%;
-  left: 5%;
-  font-family: 'Montserrat', sans-serif;
-  font-weight: 900;
-  font-style: italic;
-  font-size: clamp(5.5rem, 18vw, 15rem);
-  line-height: 0.85;
-  letter-spacing: -0.04em;
+  position: fixed;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: rgba(118, 255, 3, 0.05);
-  -webkit-text-stroke: 2px rgba(18, 19, 22, 0.12);
-  pointer-events: none;
-  user-select: none;
-  z-index: 1;
-  opacity: 0;
-  transform: translateX(-100px) skewX(-8deg);
-  transition: transform 0.85s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.65s ease;
+  color: #64748b;
+  transition: color 0.3s ease;
 }
 
-.bg-sliding-word.slide-in {
-  opacity: 1;
-  transform: translateX(0) skewX(-8deg);
+.zzz-hud-crosshair.top-left {
+  top: 1.35rem;
+  left: 2rem;
 }
 
-/* ==========================================
-   Scroll-Snap Viewport Container
-   ========================================== */
-.snap-container {
-  width: 100vw;
-  height: 100vh;
-  height: 100svh;
-  overflow-y: scroll;
-  scroll-snap-type: y mandatory;
-  scroll-behavior: smooth;
-  -webkit-overflow-scrolling: touch;
+.zzz-hud-crosshair.bottom-right {
+  bottom: 1.35rem;
+  right: 2rem;
+}
+
+.snap-container.dark-mode .zzz-hud-crosshair {
+  color: rgba(158, 255, 32, 0.75);
+}
+
+.top-right-dark-switch {
+  position: fixed;
+  top: 1.2rem;
+  right: 2rem;
+  z-index: 25;
+  display: inline-flex;
+  align-items: center;
+  padding: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.switch-track {
   position: relative;
-  z-index: 1;
+  width: 34px;
+  height: 17px;
+  border-radius: 999px;
+  background: #cbd5e1;
+  border: 1px solid rgba(15, 23, 42, 0.22);
+  transition: background-color 0.25s ease, border-color 0.25s ease;
 }
 
-/* Asymmetric Section Layout: Anchored to Top-Left/Left Axis */
-.snap-section {
-  width: 100vw;
-  height: 100vh;
-  height: 100svh;
-  scroll-snap-align: start;
-  scroll-snap-stop: always;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: flex-start;
-  padding: 5rem 6rem;
-  box-sizing: border-box;
-  position: relative;
-  overflow: hidden;
+.switch-knob {
+  position: absolute;
+  top: 1.5px;
+  left: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--obsidian);
+  transition: transform 0.25s ease, background-color 0.25s ease;
 }
 
-@media (max-width: 768px) {
-  .snap-section {
-    padding: 4rem 1.5rem;
-  }
+.top-right-dark-switch.active .switch-track {
+  background: var(--obsidian);
+  border-color: var(--acid-lime);
 }
 
-/* ==========================================
-   Minimal Right-Edge HUD Navigation Rail
-   ========================================== */
+.top-right-dark-switch.active .switch-knob {
+  transform: translateX(16px);
+  background: var(--acid-lime);
+}
+
+/* ==========================================================================
+   RIGHT-SIDE NAVIGATION RAIL
+   ========================================================================== */
+
 .tab-switcher {
   position: fixed;
-  right: 1.5rem;
+  right: 2rem;
   top: 50%;
   transform: translateY(-50%);
+  z-index: 25;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   gap: 0.45rem;
-  z-index: 50;
 }
 
 .zzz-tab-button {
-  font-family: 'Montserrat', sans-serif;
+  background: #94a3b8;
+  color: #ffffff;
+  border: none;
+  padding: 0.42rem 0.7rem;
+  font-size: 0.68rem;
   font-weight: 800;
-  font-size: 0.65rem;
-  letter-spacing: 0.12em;
-  padding: 0.35rem 0.7rem;
-  background: rgba(12, 13, 18, 0.85);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  color: #94a3b8;
-  border: 1px solid #232634;
-  border-left: 3px solid #76ff03;
-  border-radius: 2px;
-  cursor: pointer;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  transition: all 0.2s ease;
-  opacity: 0.65;
-}
-
-.zzz-tab-button span {
-  display: block;
+  text-align: right;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
 }
 
 .zzz-tab-button:hover {
-  opacity: 1;
-  background: #141620;
-  color: #ffffff;
-  border-color: #76ff03;
-  transform: translateX(-3px);
+  background: #64748b;
+  transform: translateX(-2px);
 }
 
 .zzz-tab-button.active {
-  opacity: 1;
-  background: #0c0d12;
-  color: #76ff03;
-  border-color: #76ff03;
-  border-left-width: 5px;
-  padding-right: 0.9rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  background: var(--obsidian);
+  color: var(--acid-lime);
 }
 
-/* ==========================================
-   ZZZ Black Panels & Light-Green Notches
-   ========================================== */
-.zzz-panel {
-  background: #0c0d12;
-  border: 2px solid #232634;
-  border-left: 6px solid #76ff03;
-  border-radius: 4px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-  transition: transform 0.2s ease, border-color 0.2s ease;
+/* ==========================================================================
+   SNAP SECTIONS, INTRO PANELS & SCROLL PROMPTS
+   ========================================================================== */
+
+.snap-section {
+  position: relative;
+  z-index: 4;
+  width: 100%;
+  min-height: 100vh;
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 4rem 8rem 4rem 5.5rem;
+}
+
+.intro-content {
   position: relative;
   z-index: 2;
-}
-
-.zzz-panel:hover {
-  transform: translateY(-2px);
-  border-color: #76ff03;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  width: 100%;
+  max-width: 560px;
 }
 
 .zzz-banner {
-  background: #0c0d12;
-  border: 2px solid #232634;
-  border-bottom: 4px solid #76ff03;
-  border-radius: 4px;
-  padding: 1.25rem 1.5rem;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.3rem;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-  position: relative;
-  z-index: 2;
+  background: var(--obsidian);
+  border-bottom: 3px solid var(--acid-lime);
+  padding: 1.2rem 1.55rem;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-/* Social Cards */
-.zzz-social-card {
-  display: flex;
+.zzz-panel {
+  background: var(--panel-dark);
+  border-left: 3px solid var(--acid-lime);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.snap-container.dark-mode .zzz-banner,
+.snap-container.dark-mode .zzz-panel,
+.snap-container.dark-mode .zzz-social-card,
+.snap-container.dark-mode .zzz-terminal-form {
+  border-top: 1px solid rgba(158, 255, 32, 0.22);
+  border-right: 1px solid rgba(158, 255, 32, 0.22);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+.scroll-indicator {
+  position: fixed;
+  bottom: 1.35rem;
+  left: 2rem;
+  z-index: 20;
+  display: inline-flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 1rem 1.25rem;
-  text-decoration: none;
-  background: #0c0d12;
-  border: 2px solid #232634;
-  border-left: 6px solid #76ff03;
-  border-radius: 4px;
-  color: #fff;
-  font-weight: 700;
-  transition: all 0.2s ease;
-  position: relative;
-  z-index: 2;
-}
-
-.zzz-social-card:hover {
-  background: #141620;
-  border-left-color: #76ff03;
-  transform: translateX(4px);
-}
-
-/* Status Bar & Scroll Indicator */
-.projects-status-bar {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 36px;
-  background: #0c0d12;
-  border-top: 2px solid #76ff03;
-  display: flex;
-  align-items: center;
-  justify-content: center; /* Explicitly kept centered as requested */
-  gap: 0.5rem;
-  font-family: 'Montserrat', sans-serif;
-  font-size: 0.75rem;
-  color: #76ff03;
+  gap: 0.45rem;
+  padding: 0;
+  background: transparent;
+  border: none;
+  font-family: inherit;
+  font-size: 0.68rem;
   font-weight: 900;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  z-index: 10;
+  color: var(--obsidian);
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.snap-container.dark-mode .scroll-indicator {
+  color: var(--text-light);
+}
+
+.section-heading,
+.loading-label {
+  font-size: 1.05rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.75rem;
+  font-weight: 900;
+  color: var(--obsidian);
+  transition: color 0.3s ease;
+}
+
+.snap-container.dark-mode .section-heading,
+.snap-container.dark-mode .loading-label {
+  color: var(--text-light);
+}
+
+/* ==========================================================================
+   WATERMARK, STATUS BAR, SOCIALS & TERMINAL
+   ========================================================================== */
+
+.bg-sliding-word {
+  position: absolute;
+  top: 78%;
+  left: -12%;
+  transform: translateY(-75%);
+  font-size: clamp(4.5rem, 14vw, 11.5rem);
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(11, 13, 18, 0.06);
+  pointer-events: none;
+  user-select: none;
+  z-index: 1;
+  transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.5s ease, color 0.35s ease;
+  opacity: 0.4;
+}
+
+.bg-sliding-word.slide-in {
+  transform: translate(23%, -75%);
+  opacity: 1;
+}
+
+.snap-container.dark-mode .bg-sliding-word {
+  color: rgba(158, 255, 32, 0.07);
+}
+
+.projects-status-bar {
+  position: relative;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.8rem;
+  background: var(--obsidian);
+  color: var(--acid-lime);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border: 1px solid rgba(158, 255, 32, 0.4);
   opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.3s ease;
+  transform: translateY(8px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
 }
 
 .projects-status-bar.visible {
   opacity: 1;
-  visibility: visible;
+  transform: translateY(0);
 }
 
-.scroll-indicator {
-  position: absolute;
-  bottom: 2rem;
-  left: 6rem;
+.zzz-social-card {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 0.5rem;
-  color: #121316;
-  font-family: 'Montserrat', sans-serif;
-  font-size: 0.75rem;
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
-  pointer-events: none;
-  z-index: 2;
+  padding: 1rem 1.2rem;
+  background: var(--panel-dark);
+  border-left: 3px solid var(--acid-lime);
+  text-decoration: none;
+  transition: transform 0.15s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-@media (max-width: 768px) {
-  .scroll-indicator {
-    left: 1.5rem;
-  }
+.zzz-social-card:hover {
+  transform: translateX(4px);
 }
-/* ==========================================
-   Transmission Terminal Form
-   ========================================== */
+
 .zzz-terminal-form {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  margin-top: 1.5rem;
-  background: #0c0d12;
-  border: 2px solid #232634;
-  border-top: 4px solid #76ff03;
-  padding: 1.25rem;
-  border-radius: 4px;
+  gap: 0.85rem;
+  padding: 1.5rem;
+  background: var(--panel-darker);
+  border-left: 4px solid var(--acid-lime);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .zzz-input {
-  background: #141620;
-  border: 1px solid #232634;
-  color: #fff;
-  padding: 0.7rem 1rem;
-  font-family: 'Chakra Petch', sans-serif;
-  font-size: 0.85rem;
-  border-radius: 2px;
+  width: 100%;
+  padding: 0.75rem 0.9rem;
+  background: #07090d;
+  color: #f8fafc;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  font-family: inherit;
+  font-size: 0.9rem;
+  resize: vertical;
   outline: none;
-  transition: border-color 0.2s ease;
+}
+
+.zzz-input::placeholder {
+  color: var(--text-muted);
 }
 
 .zzz-input:focus {
-  border-color: #76ff03;
+  border-color: var(--acid-lime);
 }
 
 .zzz-submit-btn {
-  background: #76ff03;
-  color: #0c0d12;
-  font-family: 'Montserrat', sans-serif;
+  align-self: flex-start;
+  padding: 0.75rem 1.35rem;
+  background: var(--obsidian);
+  color: var(--acid-lime);
+  border: 1px solid var(--acid-lime);
+  font-size: 0.82rem;
   font-weight: 900;
-  font-size: 0.8rem;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  padding: 0.75rem;
-  border: none;
-  border-radius: 2px;
   cursor: pointer;
-  transition: transform 0.1s ease, background-color 0.2s ease;
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
 
-.zzz-submit-btn:hover {
-  background: #8fff1f;
-  transform: translateY(-1px);
+.zzz-submit-btn:hover:not(:disabled) {
+  background: var(--acid-lime);
+  color: var(--obsidian);
+}
+
+.zzz-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .zzz-response-msg {
-  font-size: 0.75rem;
-  font-family: 'Montserrat', sans-serif;
-  font-weight: 800;
-  color: #76ff03;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-top: 0.25rem;
+  padding: 0.75rem 0.95rem;
+  background: rgba(158, 255, 32, 0.12);
+  border: 1px solid var(--acid-lime);
+  color: var(--acid-lime);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+@media (max-width: 768px) {
+  .light-side-artwork {
+    right: 0.5rem;
+    height: 62vh;
+  }
+
+  .snap-section {
+    padding: 4.5rem 1.25rem 5rem 1.25rem;
+  }
+
+  .zzz-hud-crosshair.top-left {
+    left: 1rem;
+    top: 1.25rem;
+  }
+
+  .top-right-dark-switch {
+    right: 1rem;
+    top: 1.2rem;
+  }
+
+  .tab-switcher {
+    top: auto;
+    bottom: 0.75rem;
+    right: 50%;
+    transform: translateX(50%);
+    flex-direction: row;
+    gap: 0.3rem;
+  }
+
+  .zzz-tab-button {
+    padding: 0.42rem 0.55rem;
+    font-size: 0.65rem;
+  }
+
+  .bg-sliding-word.slide-in {
+    transform: translate(16%, -75%);
+  }
+
+  .scroll-indicator,
+  .zzz-hud-crosshair.bottom-right {
+    display: none;
+  }
 }
