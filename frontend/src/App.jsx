@@ -213,7 +213,7 @@ export default function App() {
 
         <div className="zzz-panel" style={{ padding: '1.75rem', maxWidth: '580px', width: '100%', textAlign: 'left' }}>
           <h2 style={{ fontSize: '1.1rem', color: '#76ff03', marginBottom: '0.6rem', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            The first breath of my career.
+            No carrd. No Linktree. Built from the ground up.
           </h2>
           <p style={{ color: '#cbd5e1', fontSize: '0.9rem', lineHeight: '1.5' }}>
             Authorized proxy channel connected. Specializing in full-stack architecture, secure system frameworks, and interactive web application layers.
