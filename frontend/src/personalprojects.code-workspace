@@ -1,0 +1,12 @@
+{
+	"folders": [
+		{
+			"path": "../.."
+		},
+		{
+			"name": "knowledge-base",
+			"path": "../../../knowledge-base"
+		}
+	],
+	"settings": {}
+}

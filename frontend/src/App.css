@@ -59,10 +59,53 @@ body,
   opacity: 0.92;
   z-index: 0;
   pointer-events: none;
-  transition: opacity 0.35s ease;
+  will-change: opacity, transform;
 }
 
-.snap-container.dark-mode .light-side-artwork {
+.light-side-artwork.art-izuocha {
+  right: 0;
+  bottom: 0;
+  height: 86vh;
+  max-height: 820px;
+  object-position: right bottom;
+}
+
+.light-side-artwork.art-tatsu {
+  right: 8rem;
+  bottom: 3vh;
+  height: 89.54vh;
+  max-height: 823px;
+}
+
+.light-side-artwork.art-dcapri {
+  right: 0;
+  bottom: 0;
+  width: 70.2vw;
+  max-width: 1196px;
+  height: auto;
+  max-height: 100vh;
+  object-position: right bottom;
+}
+
+.dcapri-bottom-band {
+  position: fixed;
+  left: 0;
+  right: min(70.2vw, 1196px);
+  bottom: 0;
+  height: 170px;
+  background-image: url('/dcapri-dots.png');
+  background-repeat: repeat-x;
+  background-position: right bottom;
+  background-size: auto 100%;
+  mix-blend-mode: multiply;
+  opacity: 0;
+  z-index: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.snap-container.dark-mode .light-side-artwork,
+.snap-container.dark-mode .dcapri-bottom-band {
   opacity: 0;
 }
 
@@ -441,6 +484,33 @@ body,
   .light-side-artwork {
     right: 0.5rem;
     height: 62vh;
+  }
+
+  .light-side-artwork.art-izuocha {
+    right: 0;
+    bottom: 0;
+    height: 66vh;
+  }
+
+  .light-side-artwork.art-tatsu {
+    right: 0.35rem;
+    bottom: 3.5rem;
+    height: 70.18vh;
+  }
+
+  .light-side-artwork.art-dcapri {
+    right: 0;
+    bottom: 0;
+    width: 100vw;
+    max-width: none;
+    height: auto;
+    max-height: 65vh;
+    object-position: right bottom;
+  }
+
+  .dcapri-bottom-band {
+    right: 0;
+    height: 120px;
   }
 
   .snap-section {

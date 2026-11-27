@@ -3,7 +3,86 @@ import './App.css';
 
 const API_BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/$/, '');
 
-// Pure helper moved outside component so it never triggers React dependency warnings
+const LIGHT_ART_BY_TAB = {
+  intro: '/light-side-art.jpg',
+  projects: '/izuocha.jpg',
+  socials: '/tatsu.jpg',
+  terminal: '/DCapri.jpg',
+};
+
+const ART_CLASS_BY_SRC = {
+  '/izuocha.jpg': 'art-izuocha',
+  '/tatsu.jpg': 'art-tatsu',
+  '/DCapri.jpg': 'art-dcapri',
+};
+
+const SECTIONS = [
+  { id: 'intro', label: '01 // INTRO', key: '1' },
+  { id: 'projects', label: '02 // WORK', key: '2' },
+  { id: 'socials', label: '03 // LINKS', key: '3' },
+  { id: 'terminal', label: '04 // TERMINAL', key: '4' },
+];
+
+const SOCIAL_LINKS = [
+  {
+    name: 'GitHub',
+    url: 'https://github.com/toonkari',
+    desc: 'Inspect source code & repositories',
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+        <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"></path>
+        <path d="M9 18c-4.51 2-5-2-7-2"></path>
+      </svg>
+    ),
+  },
+  {
+    name: 'Instagram',
+    url: 'https://instagram.com/teominhh',
+    desc: 'Visual repository & creative shots',
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+        <rect width="20" height="20" x="2" y="2" rx="5" ry="5"></rect>
+        <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+        <line x1="17.5" x2="17.51" y1="6.5" y2="6.5"></line>
+      </svg>
+    ),
+  },
+  {
+    name: 'TikTok',
+    url: 'https://tiktok.com/@teominhh',
+    desc: 'Short-form content & clips',
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+        <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"></path>
+      </svg>
+    ),
+  },
+  {
+    name: 'LinkedIn',
+    url: 'https://linkedin.com',
+    desc: 'Professional network & experience',
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+        <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
+        <rect width="4" height="12" x="2" y="9"></rect>
+        <circle cx="4" cy="4" r="2"></circle>
+      </svg>
+    ),
+  },
+  {
+    name: 'Cobalt',
+    url: '#',
+    desc: 'System engine & utility module',
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" x2="12" y1="8" y2="12"></line>
+        <line x1="12" x2="12.01" y1="16" y2="16"></line>
+      </svg>
+    ),
+  },
+];
+
 const playHudClick = () => {
   try {
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -32,89 +111,41 @@ export default function App() {
   const [isProjectsInView, setIsProjectsInView] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
 
+  // Scroll-driven light artwork state
+  const [displayedArt, setDisplayedArt] = useState(LIGHT_ART_BY_TAB.intro);
+  const [scrollArtOpacity, setScrollArtOpacity] = useState(0.92);
+
   // Transmission Terminal State
   const [senderHandle, setSenderHandle] = useState('');
   const [messageBody, setMessageBody] = useState('');
   const [transmissionStatus, setTransmissionStatus] = useState(null);
   const [isTransmitting, setIsTransmitting] = useState(false);
 
+  const containerRef = useRef(null);
   const bgVideoRef = useRef(null);
   const introRef = useRef(null);
   const projectsRef = useRef(null);
   const socialsRef = useRef(null);
   const terminalRef = useRef(null);
 
-  const socialLinks = [
-    {
-      name: 'GitHub',
-      url: 'https://github.com/toonkari',
-      desc: 'Inspect source code & repositories',
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-          <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"></path>
-          <path d="M9 18c-4.51 2-5-2-7-2"></path>
-        </svg>
-      ),
-    },
-    {
-      name: 'Instagram',
-      url: 'https://instagram.com/teominhh',
-      desc: 'Visual repository & creative shots',
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-          <rect width="20" height="20" x="2" y="2" rx="5" ry="5"></rect>
-          <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
-          <line x1="17.5" x2="17.51" y1="6.5" y2="6.5"></line>
-        </svg>
-      ),
-    },
-    {
-      name: 'TikTok',
-      url: 'https://tiktok.com/@teominhh',
-      desc: 'Short-form content & clips',
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-          <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"></path>
-        </svg>
-      ),
-    },
-    {
-      name: 'LinkedIn',
-      url: 'https://linkedin.com',
-      desc: 'Professional network & experience',
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-          <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
-          <rect width="4" height="12" x="2" y="9"></rect>
-          <circle cx="4" cy="4" r="2"></circle>
-        </svg>
-      ),
-    },
-    {
-      name: 'Cobalt',
-      url: '#',
-      desc: 'System engine & utility module',
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-          <circle cx="12" cy="12" r="10"></circle>
-          <line x1="12" x2="12" y1="8" y2="12"></line>
-          <line x1="12" x2="12.01" y1="16" y2="16"></line>
-        </svg>
-      ),
-    },
-  ];
+  const getRefByTab = (tabId) => {
+    if (tabId === 'projects') return projectsRef;
+    if (tabId === 'socials') return socialsRef;
+    if (tabId === 'terminal') return terminalRef;
+    return introRef;
+  };
 
-  const scrollToSection = (ref, tabName) => {
+  const scrollToSection = (tabId) => {
     playHudClick();
-    setActiveTab(tabName);
-    ref.current?.scrollIntoView({ behavior: 'smooth' });
+    setActiveTab(tabId);
+    getRefByTab(tabId).current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   useEffect(() => {
     fetch(`${API_BASE_URL}/api/projects`)
       .then((res) => res.json())
       .then((data) => {
-        setProjects(data.projects);
+        setProjects(data.projects || []);
         setLoading(false);
       })
       .catch((err) => {
@@ -136,20 +167,50 @@ export default function App() {
   }, [isDarkMode]);
 
   useEffect(() => {
-    const container = document.querySelector('.snap-container');
+    const container = containerRef.current;
+    if (!container) return;
+
+    const arrivalThreshold = 0.22;
+    const handoffHalfSpan = 0.5;
+    const denom = handoffHalfSpan - arrivalThreshold;
+
+    const handleScroll = () => {
+      const sectionHeight = container.clientHeight || window.innerHeight || 1;
+      const progress = Math.max(0, Math.min(SECTIONS.length - 1, container.scrollTop / sectionHeight));
+      const nearestIndex = Math.round(progress);
+      const nearestSection = SECTIONS[nearestIndex] || SECTIONS[0];
+
+      const distFromCenter = Math.abs(progress - nearestIndex);
+      const effectiveDist = Math.max(0, Math.min(denom, distFromCenter - arrivalThreshold));
+      const visibility = (1 + Math.cos(Math.PI * (effectiveDist / denom))) / 2;
+
+      setDisplayedArt(LIGHT_ART_BY_TAB[nearestSection.id] || '/light-side-art.jpg');
+      setScrollArtOpacity(Number((visibility * 0.92).toFixed(3)));
+    };
+
+    handleScroll();
+    container.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('resize', handleScroll);
+
+    return () => {
+      container.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleScroll);
+    };
+  }, []);
+
+  useEffect(() => {
+    const container = containerRef.current;
     if (!container) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
+          if (entry.target === projectsRef.current) {
+            setIsProjectsInView(entry.isIntersecting);
+          }
           if (entry.isIntersecting) {
             if (entry.target === introRef.current) setActiveTab('intro');
-            if (entry.target === projectsRef.current) {
-              setActiveTab('projects');
-              setIsProjectsInView(true);
-            } else {
-              setIsProjectsInView(false);
-            }
+            if (entry.target === projectsRef.current) setActiveTab('projects');
             if (entry.target === socialsRef.current) setActiveTab('socials');
             if (entry.target === terminalRef.current) setActiveTab('terminal');
           }
@@ -158,33 +219,23 @@ export default function App() {
       { root: container, threshold: 0.3 }
     );
 
-    if (introRef.current) observer.observe(introRef.current);
-    if (projectsRef.current) observer.observe(projectsRef.current);
-    if (socialsRef.current) observer.observe(socialsRef.current);
-    if (terminalRef.current) observer.observe(terminalRef.current);
+    [introRef, projectsRef, socialsRef, terminalRef].forEach((ref) => {
+      if (ref.current) observer.observe(ref.current);
+    });
 
     return () => observer.disconnect();
-  }, []);
+  });
 
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-
-      const navigate = (ref, tabName) => {
-        playHudClick();
-        setActiveTab(tabName);
-        ref.current?.scrollIntoView({ behavior: 'smooth' });
-      };
-
-      if (e.key === '1') navigate(introRef, 'intro');
-      if (e.key === '2') navigate(projectsRef, 'projects');
-      if (e.key === '3') navigate(socialsRef, 'socials');
-      if (e.key === '4') navigate(terminalRef, 'terminal');
+      const matched = SECTIONS.find((s) => s.key === e.key);
+      if (matched) scrollToSection(matched.id);
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  });
 
   const handleSendTransmission = async (e) => {
     e.preventDefault();
@@ -215,23 +266,32 @@ export default function App() {
 
   const handleToggleDarkMode = () => {
     playHudClick();
-    setIsDarkMode((prev) => {
-      const next = !prev;
-      if (next && bgVideoRef.current) {
-        bgVideoRef.current.muted = true;
-        bgVideoRef.current.play().catch(() => {});
-      }
-      return next;
-    });
+    setIsDarkMode((prev) => !prev);
   };
 
+  const nextSectionMap = {
+    intro: { target: 'projects', text: 'SCROLL DOWN [PRESS 2]', arrow: '▼' },
+    projects: { target: 'socials', text: 'SCROLL DOWN [PRESS 3]', arrow: '▼' },
+    socials: { target: 'terminal', text: 'SCROLL DOWN [PRESS 4]', arrow: '▼' },
+    terminal: { target: 'intro', text: 'SCROLL UP [PRESS 1]', arrow: '▲' },
+  };
+  const nextNav = nextSectionMap[activeTab] || nextSectionMap.intro;
+  const artVariantClass = ART_CLASS_BY_SRC[displayedArt] || 'art-default';
+  const showDcapriBottomBand = !isDarkMode && displayedArt === '/DCapri.jpg';
+
   return (
-    <div className={`snap-container ${isDarkMode ? 'dark-mode' : ''}`}>
+    <div ref={containerRef} className={`snap-container ${isDarkMode ? 'dark-mode' : ''}`}>
+      <div
+        aria-hidden="true"
+        className={`dcapri-bottom-band ${showDcapriBottomBand ? 'active' : ''}`}
+        style={{ opacity: showDcapriBottomBand ? scrollArtOpacity : 0 }}
+      />
       <img
-        src="/light-side-art.jpg"
+        src={displayedArt}
         alt=""
         aria-hidden="true"
-        className="light-side-artwork"
+        className={`light-side-artwork ${artVariantClass}`}
+        style={{ opacity: isDarkMode ? 0 : scrollArtOpacity }}
       />
       <video
         ref={bgVideoRef}
@@ -264,18 +324,15 @@ export default function App() {
 
       {/* 4-Item Right-Side Navigation Rail */}
       <div className="tab-switcher">
-        <button className={`zzz-tab-button ${activeTab === 'intro' ? 'active' : ''}`} onClick={() => scrollToSection(introRef, 'intro')}>
-          <span>01 // INTRO</span>
-        </button>
-        <button className={`zzz-tab-button ${activeTab === 'projects' ? 'active' : ''}`} onClick={() => scrollToSection(projectsRef, 'projects')}>
-          <span>02 // WORK</span>
-        </button>
-        <button className={`zzz-tab-button ${activeTab === 'socials' ? 'active' : ''}`} onClick={() => scrollToSection(socialsRef, 'socials')}>
-          <span>03 // LINKS</span>
-        </button>
-        <button className={`zzz-tab-button ${activeTab === 'terminal' ? 'active' : ''}`} onClick={() => scrollToSection(terminalRef, 'terminal')}>
-          <span>04 // TERMINAL</span>
-        </button>
+        {SECTIONS.map((s) => (
+          <button
+            key={s.id}
+            className={`zzz-tab-button ${activeTab === s.id ? 'active' : ''}`}
+            onClick={() => scrollToSection(s.id)}
+          >
+            <span>{s.label}</span>
+          </button>
+        ))}
       </div>
 
       {/* SECTION 1: INTRO */}
@@ -387,7 +444,7 @@ export default function App() {
             [ NETWORK CHANNELS ]
           </h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-            {socialLinks.map((link, idx) => (
+            {SOCIAL_LINKS.map((link, idx) => (
               <a key={idx} href={link.url} target="_blank" rel="noreferrer" className="zzz-social-card">
                 <div style={{ color: '#9eff20', display: 'flex', alignItems: 'center', gap: '1rem' }}>
                   {link.icon}
@@ -447,22 +504,10 @@ export default function App() {
       <button
         type="button"
         className="scroll-indicator"
-        onClick={() => {
-          if (activeTab === 'intro') scrollToSection(projectsRef, 'projects');
-          else if (activeTab === 'projects') scrollToSection(socialsRef, 'socials');
-          else if (activeTab === 'socials') scrollToSection(terminalRef, 'terminal');
-          else scrollToSection(introRef, 'intro');
-        }}
+        onClick={() => scrollToSection(nextNav.target)}
       >
-        <span>
-          {activeTab === 'intro' && 'SCROLL DOWN [PRESS 2]'}
-          {activeTab === 'projects' && 'SCROLL DOWN [PRESS 3]'}
-          {activeTab === 'socials' && 'SCROLL DOWN [PRESS 4]'}
-          {activeTab === 'terminal' && 'SCROLL UP [PRESS 1]'}
-        </span>
-        <span style={{ fontSize: '0.95rem', color: '#9eff20' }}>
-          {activeTab === 'terminal' ? '▲' : '▼'}
-        </span>
+        <span>{nextNav.text}</span>
+        <span style={{ fontSize: '0.95rem', color: '#9eff20' }}>{nextNav.arrow}</span>
       </button>
     </div>
   );
