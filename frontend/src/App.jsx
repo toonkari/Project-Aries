@@ -127,6 +127,8 @@ export default function App() {
   const projectsRef = useRef(null);
   const socialsRef = useRef(null);
   const terminalRef = useRef(null);
+  const preloadedImagesRef = useRef({});
+  const requestedArtRef = useRef(LIGHT_ART_BY_TAB.intro);
 
   const getRefByTab = (tabId) => {
     if (tabId === 'projects') return projectsRef;
@@ -140,6 +142,34 @@ export default function App() {
     setActiveTab(tabId);
     getRefByTab(tabId).current?.scrollIntoView({ behavior: 'smooth' });
   };
+
+  // Preload and decode all section artwork on initial mount
+  useEffect(() => {
+    const uniqueSrcs = Array.from(new Set(Object.values(LIGHT_ART_BY_TAB)));
+    uniqueSrcs.forEach((src) => {
+      const img = new Image();
+      img.decoding = 'async';
+      img.src = src;
+      preloadedImagesRef.current[src] = {
+        img,
+        ready: false,
+      };
+
+      const markReady = () => {
+        if (preloadedImagesRef.current[src]) {
+          preloadedImagesRef.current[src].ready = true;
+        }
+      };
+
+      if (img.decode) {
+        img.decode().then(markReady).catch(() => {
+          img.addEventListener('load', markReady, { once: true });
+        });
+      } else {
+        img.addEventListener('load', markReady, { once: true });
+      }
+    });
+  }, []);
 
   useEffect(() => {
     fetch(`${API_BASE_URL}/api/projects`)
@@ -179,13 +209,37 @@ export default function App() {
       const progress = Math.max(0, Math.min(SECTIONS.length - 1, container.scrollTop / sectionHeight));
       const nearestIndex = Math.round(progress);
       const nearestSection = SECTIONS[nearestIndex] || SECTIONS[0];
+      const targetSrc = LIGHT_ART_BY_TAB[nearestSection.id] || '/light-side-art.jpg';
 
       const distFromCenter = Math.abs(progress - nearestIndex);
       const effectiveDist = Math.max(0, Math.min(denom, distFromCenter - arrivalThreshold));
       const visibility = (1 + Math.cos(Math.PI * (effectiveDist / denom))) / 2;
 
-      setDisplayedArt(LIGHT_ART_BY_TAB[nearestSection.id] || '/light-side-art.jpg');
-      setScrollArtOpacity(Number((visibility * 0.92).toFixed(3)));
+      requestedArtRef.current = targetSrc;
+      const cached = preloadedImagesRef.current[targetSrc];
+
+      if (!cached || cached.ready || cached.img.complete) {
+        if (cached) cached.ready = true;
+        setDisplayedArt(targetSrc);
+        setScrollArtOpacity(Number((visibility * 0.92).toFixed(3)));
+      } else {
+        // Hold current image at low/zero opacity until new image finishes decoding
+        setScrollArtOpacity(0);
+        const onLoaded = () => {
+          cached.ready = true;
+          if (requestedArtRef.current === targetSrc) {
+            setDisplayedArt(targetSrc);
+            setScrollArtOpacity(Number((visibility * 0.92).toFixed(3)));
+          }
+        };
+        if (cached.img.decode) {
+          cached.img.decode().then(onLoaded).catch(() => {
+            cached.img.addEventListener('load', onLoaded, { once: true });
+          });
+        } else {
+          cached.img.addEventListener('load', onLoaded, { once: true });
+        }
+      }
     };
 
     handleScroll();
