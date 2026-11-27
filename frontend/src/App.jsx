@@ -10,6 +10,13 @@ const LIGHT_ART_BY_TAB = {
   terminal: '/DCapri.jpg',
 };
 
+const ART_SOURCES = [
+  '/light-side-art.jpg',
+  '/izuocha.jpg',
+  '/tatsu.jpg',
+  '/DCapri.jpg',
+];
+
 const ART_CLASS_BY_SRC = {
   '/izuocha.jpg': 'art-izuocha',
   '/tatsu.jpg': 'art-tatsu',
@@ -127,8 +134,6 @@ export default function App() {
   const projectsRef = useRef(null);
   const socialsRef = useRef(null);
   const terminalRef = useRef(null);
-  const preloadedImagesRef = useRef({});
-  const requestedArtRef = useRef(LIGHT_ART_BY_TAB.intro);
 
   const getRefByTab = (tabId) => {
     if (tabId === 'projects') return projectsRef;
@@ -142,34 +147,6 @@ export default function App() {
     setActiveTab(tabId);
     getRefByTab(tabId).current?.scrollIntoView({ behavior: 'smooth' });
   };
-
-  // Preload and decode all section artwork on initial mount
-  useEffect(() => {
-    const uniqueSrcs = Array.from(new Set(Object.values(LIGHT_ART_BY_TAB)));
-    uniqueSrcs.forEach((src) => {
-      const img = new Image();
-      img.decoding = 'async';
-      img.src = src;
-      preloadedImagesRef.current[src] = {
-        img,
-        ready: false,
-      };
-
-      const markReady = () => {
-        if (preloadedImagesRef.current[src]) {
-          preloadedImagesRef.current[src].ready = true;
-        }
-      };
-
-      if (img.decode) {
-        img.decode().then(markReady).catch(() => {
-          img.addEventListener('load', markReady, { once: true });
-        });
-      } else {
-        img.addEventListener('load', markReady, { once: true });
-      }
-    });
-  }, []);
 
   useEffect(() => {
     fetch(`${API_BASE_URL}/api/projects`)
@@ -209,37 +186,13 @@ export default function App() {
       const progress = Math.max(0, Math.min(SECTIONS.length - 1, container.scrollTop / sectionHeight));
       const nearestIndex = Math.round(progress);
       const nearestSection = SECTIONS[nearestIndex] || SECTIONS[0];
-      const targetSrc = LIGHT_ART_BY_TAB[nearestSection.id] || '/light-side-art.jpg';
 
       const distFromCenter = Math.abs(progress - nearestIndex);
       const effectiveDist = Math.max(0, Math.min(denom, distFromCenter - arrivalThreshold));
       const visibility = (1 + Math.cos(Math.PI * (effectiveDist / denom))) / 2;
 
-      requestedArtRef.current = targetSrc;
-      const cached = preloadedImagesRef.current[targetSrc];
-
-      if (!cached || cached.ready || cached.img.complete) {
-        if (cached) cached.ready = true;
-        setDisplayedArt(targetSrc);
-        setScrollArtOpacity(Number((visibility * 0.92).toFixed(3)));
-      } else {
-        // Hold current image at low/zero opacity until new image finishes decoding
-        setScrollArtOpacity(0);
-        const onLoaded = () => {
-          cached.ready = true;
-          if (requestedArtRef.current === targetSrc) {
-            setDisplayedArt(targetSrc);
-            setScrollArtOpacity(Number((visibility * 0.92).toFixed(3)));
-          }
-        };
-        if (cached.img.decode) {
-          cached.img.decode().then(onLoaded).catch(() => {
-            cached.img.addEventListener('load', onLoaded, { once: true });
-          });
-        } else {
-          cached.img.addEventListener('load', onLoaded, { once: true });
-        }
-      }
+      setDisplayedArt(LIGHT_ART_BY_TAB[nearestSection.id] || '/light-side-art.jpg');
+      setScrollArtOpacity(Number((visibility * 0.92).toFixed(3)));
     };
 
     handleScroll();
@@ -330,7 +283,6 @@ export default function App() {
     terminal: { target: 'intro', text: 'SCROLL UP [PRESS 1]', arrow: '▲' },
   };
   const nextNav = nextSectionMap[activeTab] || nextSectionMap.intro;
-  const artVariantClass = ART_CLASS_BY_SRC[displayedArt] || 'art-default';
   const showDcapriBottomBand = !isDarkMode && displayedArt === '/DCapri.jpg';
 
   return (
@@ -340,13 +292,22 @@ export default function App() {
         className={`dcapri-bottom-band ${showDcapriBottomBand ? 'active' : ''}`}
         style={{ opacity: showDcapriBottomBand ? scrollArtOpacity : 0 }}
       />
-      <img
-        src={displayedArt}
-        alt=""
-        aria-hidden="true"
-        className={`light-side-artwork ${artVariantClass}`}
-        style={{ opacity: isDarkMode ? 0 : scrollArtOpacity }}
-      />
+      {ART_SOURCES.map((src) => {
+        const isCurrent = displayedArt === src;
+        const artVariantClass = ART_CLASS_BY_SRC[src] || 'art-default';
+        return (
+          <img
+            key={src}
+            src={src}
+            alt=""
+            aria-hidden="true"
+            loading="eager"
+            decoding="async"
+            className={`light-side-artwork ${artVariantClass}`}
+            style={{ opacity: !isDarkMode && isCurrent ? scrollArtOpacity : 0 }}
+          />
+        );
+      })}
       <video
         ref={bgVideoRef}
         src="/background.mp4"
